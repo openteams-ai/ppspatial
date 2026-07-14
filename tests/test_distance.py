@@ -104,3 +104,12 @@ class TestEdgeCases:
         # euclidean of (-1,-2,-3) vs (-4,-6,-8): sqrt(9+16+25)=sqrt(50)
         assert close(euclidean([-1.0, -2.0, -3.0], [-4.0, -6.0, -8.0]),
                      math.sqrt(50.0))
+
+    def test_nan_propagates(self):
+        # All four metrics must return NaN if any coordinate diff is NaN,
+        # matching numpy/scipy. chebyshev needs an explicit guard for this.
+        nan = float("nan")
+        for fn in self.ALL:
+            assert math.isnan(fn([nan, 0.0], [0.0, 0.0])), (
+                f"{fn.__name__} did not propagate NaN"
+            )

@@ -60,11 +60,18 @@ def cityblock(a: Array[Float64], b: Array[Float64], out: Array[Float64]) -> None
 
 @guvectorize([], "(d),(d)->()")
 def chebyshev(a: Array[Float64], b: Array[Float64], out: Array[Float64]) -> None:
-    """Chebyshev (L-infinity) distance: max(|a[i] - b[i]|)."""
+    """Chebyshev (L-infinity) distance: max(|a[i] - b[i]|).
+
+    NaN propagates (matching numpy/scipy): once a NaN difference is seen the
+    result is NaN. This needs an explicit guard because `NaN > m` is always
+    False, so the running max would otherwise silently ignore NaN.
+    """
     m: Float64 = 0.0
     d: Float64 = 0.0
     for i in range(len(a)):
         d = fabs(a[i] - b[i])
         if d > m:
+            m = d
+        if d != d:  # d is NaN; force the result to NaN (NaN > m never fires)
             m = d
     out[0] = m

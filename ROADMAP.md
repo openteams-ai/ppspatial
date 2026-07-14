@@ -40,6 +40,16 @@ postpython [#14](https://github.com/openteams-ai/postpython/issues/14); until
 then, PyPI version deps + a `main` checkout is the supported path (matches
 ppspecial).
 
+### Intentional divergence from ppspecial
+
+`_prefer_native()` here is hardened relative to the ppspecial exemplar: if the
+`ppspatial_native` extension is *present but fails to import* (missing
+transitive dependency, ABI mismatch, corrupt `.so`), it warns and falls back
+to the pure-Python kernels instead of letting the exception break
+`import ppspatial`. The exemplar re-raises in that case. This is a deliberate
+robustness improvement for a best-effort optimization; worth folding back into
+ppspecial (same library→exemplar feedback loop the roadmap encourages).
+
 ## Target 1: Point-to-point distances `(d),(d)->()`
 
 Status: `Active`

@@ -36,8 +36,15 @@ def main() -> int:
         ext_path.replace(target)
 
     spec = importlib.util.spec_from_file_location(MODULE_NAME, str(target))
+    if spec is None or spec.loader is None:
+        print(f"smoke test FAILED: could not create an import spec for {target.name}")
+        return 1
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    try:
+        spec.loader.exec_module(module)
+    except Exception as exc:
+        print(f"smoke test FAILED: {MODULE_NAME} built but did not import: {exc}")
+        return 1
     ufuncs = sorted(n for n in dir(module) if not n.startswith("_"))
     print(f"built {target.name}")
     print(f"registered {len(ufuncs)} ufuncs: {', '.join(ufuncs)}")
