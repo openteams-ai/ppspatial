@@ -85,7 +85,7 @@ with a minimal reproducer when work starts — the filing is part of the work
 
 | Item | Blocker | Workaround |
 |---|---|---|
-| `pdist` condensed form | output length `n(n-1)/2` is a *computed* core dimension; the gufunc layout signature only takes symbolic input dims | use the square `(n,d)->(n,n)` form meanwhile |
+| `pdist` condensed form | output length `n(n-1)/2` is a *computed* core dimension; the gufunc layout signature only takes symbolic input dims — filed upstream as [postpython#38](https://github.com/openteams-ai/postpython/issues/38) | use the square `(n,d)->(n,n)` form meanwhile |
 | `KDTree` | recursive node structs | `Later` — likely needs `@dataclass`→struct support |
 | `ConvexHull` / `Delaunay` | qhull-scale computational geometry | `Later` — likely permanent foreign code |
 
