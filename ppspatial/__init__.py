@@ -11,10 +11,10 @@ Function families implemented
 ------------------------------
 Distance (_distance) : euclidean, sqeuclidean, cityblock, chebyshev,
                        cosine, correlation, minkowski
+Pairwise (_pairwise) : cdist
 
 Roadmap (not yet implemented)
 ------------------------------
-Distance             : cdist
 Transforms           : Rotation core ops on Shape[4] quaternions
 Blocked on compiler  : pdist condensed form (computed core dim n(n-1)/2),
                        KDTree / ConvexHull / Delaunay
@@ -33,6 +33,7 @@ from ppspatial._distance import (
     correlation,
     minkowski,
 )
+from ppspatial._pairwise import cdist
 
 __all__ = [
     "euclidean",
@@ -42,6 +43,7 @@ __all__ = [
     "cosine",
     "correlation",
     "minkowski",
+    "cdist",
 ]
 
 # __native_available__ is True when AT LEAST ONE kernel has been replaced by
