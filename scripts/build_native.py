@@ -18,7 +18,7 @@ from postpyc.build import build_file, BuildError
 PACKAGE_DIR = Path(__file__).resolve().parent.parent / "ppspatial"
 PACKAGE_ENTRY = PACKAGE_DIR / "__init__.py"
 
-EXPECTED_NATIVE = ["_distance"]
+EXPECTED_NATIVE = ["_distance", "_pairwise"]
 
 
 def main() -> int:
