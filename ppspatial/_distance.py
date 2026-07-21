@@ -2,16 +2,18 @@
 
 Public API
 ----------
-euclidean(a, b)     — L2 (straight-line) distance
-sqeuclidean(a, b)   — squared L2 distance (no sqrt)
-cityblock(a, b)     — L1 (Manhattan / taxicab) distance
-chebyshev(a, b)     — L-infinity (maximum coordinate) distance
-cosine(a, b)        — cosine distance: 1 - (a·b)/(‖a‖‖b‖)
-correlation(a, b)   — correlation distance: 1 - Pearson r
+euclidean(a, b)      — L2 (straight-line) distance
+sqeuclidean(a, b)    — squared L2 distance (no sqrt)
+cityblock(a, b)      — L1 (Manhattan / taxicab) distance
+chebyshev(a, b)      — L-infinity (maximum coordinate) distance
+cosine(a, b)         — cosine distance: 1 - (a·b)/(‖a‖‖b‖)
+correlation(a, b)    — correlation distance: 1 - Pearson r
+minkowski(a, b, p)   — Lp distance, generalizing the L-family above
 
 Each kernel is a ``@guvectorize`` function over the layout signature
 ``(d),(d)->()``: two 1-D coordinate vectors of equal length ``d`` in, one
-scalar distance out. The runtime broadcasts each kernel over batches of
+scalar distance out. ``minkowski`` additionally takes a scalar order ``p``
+(``(d),(d),()->()``). The runtime broadcasts each kernel over batches of
 points automatically (the trailing axis is the core dimension), so
 ``euclidean(A, B)`` over stacks of vectors just works.
 
@@ -22,7 +24,7 @@ hardcoded reference values with a tight tolerance.
 
 from postyp import Array, Float64
 from postpyc import guvectorize
-from postpyc.math import sqrt, fabs
+from postpyc.math import sqrt, fabs, pow
 
 
 @guvectorize([], "(d),(d)->()")
@@ -125,3 +127,20 @@ def correlation(a: Array[Float64], b: Array[Float64], out: Array[Float64]) -> No
         na += da * da
         nb += db * db
     out[0] = 1.0 - dot / (sqrt(na) * sqrt(nb))
+
+
+@guvectorize([], "(d),(d),()->()")
+def minkowski(a: Array[Float64], b: Array[Float64], p: Float64,
+              out: Array[Float64]) -> None:
+    """Minkowski distance of order ``p``: (sum |a_i - b_i|**p) ** (1/p).
+
+    Generalizes the L-family: ``p=1`` is ``cityblock`` (L1), ``p=2`` is
+    ``euclidean`` (L2), and ``p -> inf`` approaches ``chebyshev`` (L-inf).
+    Mirrors ``scipy.spatial.distance.minkowski``; ``p >= 1`` gives a true
+    metric. NaN differences propagate through ``pow``. A non-positive ``p``
+    divides by zero in the ``1/p`` exponent (inf/NaN), as in scipy.
+    """
+    acc: Float64 = 0.0
+    for i in range(len(a)):
+        acc += pow(fabs(a[i] - b[i]), p)
+    out[0] = pow(acc, 1.0 / p)
