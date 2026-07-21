@@ -14,6 +14,7 @@ from ppspatial import (
     chebyshev,
     cosine,
     correlation,
+    minkowski,
 )
 
 
@@ -122,6 +123,32 @@ class TestCorrelation:
         # adding a constant to either vector does not change correlation
         assert close(correlation([1.0, 2.0, 4.0], [2.0, 0.0, 1.0]),
                      correlation([11.0, 12.0, 14.0], [2.0, 0.0, 1.0]))
+
+
+class TestMinkowski:
+    def test_p1_is_cityblock(self):
+        # p = 1 is the L1 / Manhattan distance
+        assert close(minkowski(A, B, 1.0), 7.0)
+        assert close(minkowski(A, B, 1.0), cityblock(A, B))
+
+    def test_p2_is_euclidean(self):
+        # p = 2 is the L2 / Euclidean distance
+        assert close(minkowski(A, B, 2.0), 5.0)
+        assert close(minkowski(A, B, 2.0), euclidean(A, B))
+
+    def test_fractional_order(self):
+        # p = 3: (|3|^3 + |4|^3) ^ (1/3) = 91 ** (1/3)
+        assert close(minkowski(A, B, 3.0), 91.0 ** (1.0 / 3.0))
+
+    def test_agrees_with_l_family_on_general_pair(self):
+        p = [1.0, 2.0, 3.0]
+        q = [4.0, 0.0, 1.0]
+        assert close(minkowski(p, q, 1.0), cityblock(p, q))
+        assert close(minkowski(p, q, 2.0), euclidean(p, q))
+
+    def test_nan_propagates(self):
+        nan = float("nan")
+        assert math.isnan(minkowski([nan, 0.0], [0.0, 0.0], 2.0))
 
 
 class TestOrdering:
