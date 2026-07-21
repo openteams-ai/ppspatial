@@ -9,11 +9,12 @@ time.
 
 Function families implemented
 ------------------------------
-Distance (_distance) : euclidean, sqeuclidean, cityblock, chebyshev
+Distance (_distance) : euclidean, sqeuclidean, cityblock, chebyshev,
+                       cosine, correlation
 
 Roadmap (not yet implemented)
 ------------------------------
-Distance             : minkowski, cosine, correlation, cdist
+Distance             : minkowski, cdist
 Transforms           : Rotation core ops on Shape[4] quaternions
 Blocked on compiler  : pdist condensed form (computed core dim n(n-1)/2),
                        KDTree / ConvexHull / Delaunay
@@ -28,6 +29,8 @@ from ppspatial._distance import (
     sqeuclidean,
     cityblock,
     chebyshev,
+    cosine,
+    correlation,
 )
 
 __all__ = [
@@ -35,6 +38,8 @@ __all__ = [
     "sqeuclidean",
     "cityblock",
     "chebyshev",
+    "cosine",
+    "correlation",
 ]
 
 # __native_available__ is True when AT LEAST ONE kernel has been replaced by

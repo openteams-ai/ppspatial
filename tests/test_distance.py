@@ -7,7 +7,14 @@ so tolerances are tight.
 
 import math
 
-from ppspatial import euclidean, sqeuclidean, cityblock, chebyshev
+from ppspatial import (
+    euclidean,
+    sqeuclidean,
+    cityblock,
+    chebyshev,
+    cosine,
+    correlation,
+)
 
 
 def close(a, b, rtol=1e-12, atol=1e-12):
@@ -72,6 +79,49 @@ class TestChebyshev:
     def test_picks_largest_axis(self):
         # differences: 1, 8, 3 -> max 8
         assert close(chebyshev([0.0, 0.0, 0.0], [1.0, 8.0, 3.0]), 8.0)
+
+
+class TestCosine:
+    def test_orthogonal_is_one(self):
+        # perpendicular vectors: dot = 0 -> distance exactly 1
+        assert close(cosine([1.0, 0.0], [0.0, 1.0]), 1.0)
+
+    def test_parallel_is_zero(self):
+        # same direction (b = 2a): angle 0 -> distance 0
+        assert close(cosine([1.0, 2.0, 3.0], [2.0, 4.0, 6.0]), 0.0)
+
+    def test_opposite_is_two(self):
+        # antiparallel: dot = -‖a‖‖b‖ -> distance 2
+        assert close(cosine([1.0, 0.0], [-1.0, 0.0]), 2.0)
+
+    def test_known_value(self):
+        # a·b = 1, ‖a‖ = 1, ‖b‖ = sqrt(2) -> 1 - 1/sqrt(2)
+        assert close(cosine([1.0, 0.0], [1.0, 1.0]), 1.0 - 1.0 / math.sqrt(2.0))
+
+    def test_magnitude_invariant(self):
+        # scaling either vector leaves the angle (and distance) unchanged
+        assert close(cosine([1.0, 2.0], [3.0, 4.0]),
+                     cosine([10.0, 20.0], [3.0, 4.0]))
+
+
+class TestCorrelation:
+    def test_perfectly_correlated_is_zero(self):
+        # b is an increasing affine map of a (b = 2a + 1): r = 1 -> distance 0
+        assert close(correlation([1.0, 2.0, 3.0], [3.0, 5.0, 7.0]), 0.0)
+
+    def test_anticorrelated_is_two(self):
+        # b decreases as a increases: r = -1 -> distance 2
+        assert close(correlation([1.0, 2.0, 3.0], [3.0, 2.0, 1.0]), 2.0)
+
+    def test_known_value(self):
+        # a=[1,2,3] b=[1,3,2]: centered da=[-1,0,1] db=[-1,1,0]
+        # dot=1, ‖da‖=‖db‖=sqrt(2) -> r=1/2 -> distance 1/2
+        assert close(correlation([1.0, 2.0, 3.0], [1.0, 3.0, 2.0]), 0.5)
+
+    def test_offset_invariant(self):
+        # adding a constant to either vector does not change correlation
+        assert close(correlation([1.0, 2.0, 4.0], [2.0, 0.0, 1.0]),
+                     correlation([11.0, 12.0, 14.0], [2.0, 0.0, 1.0]))
 
 
 class TestOrdering:

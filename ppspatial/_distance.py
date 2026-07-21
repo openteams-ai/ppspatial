@@ -6,6 +6,8 @@ euclidean(a, b)     — L2 (straight-line) distance
 sqeuclidean(a, b)   — squared L2 distance (no sqrt)
 cityblock(a, b)     — L1 (Manhattan / taxicab) distance
 chebyshev(a, b)     — L-infinity (maximum coordinate) distance
+cosine(a, b)        — cosine distance: 1 - (a·b)/(‖a‖‖b‖)
+correlation(a, b)   — correlation distance: 1 - Pearson r
 
 Each kernel is a ``@guvectorize`` function over the layout signature
 ``(d),(d)->()``: two 1-D coordinate vectors of equal length ``d`` in, one
@@ -75,3 +77,51 @@ def chebyshev(a: Array[Float64], b: Array[Float64], out: Array[Float64]) -> None
         if d != d:  # d is NaN; force the result to NaN (NaN > m never fires)
             m = d
     out[0] = m
+
+
+@guvectorize([], "(d),(d)->()")
+def cosine(a: Array[Float64], b: Array[Float64], out: Array[Float64]) -> None:
+    """Cosine distance: 1 - (a·b) / (‖a‖ ‖b‖).
+
+    Zero for vectors pointing the same direction, up to 2 for opposite ones;
+    it ignores magnitude and measures only the angle. Mirrors
+    ``scipy.spatial.distance.cosine``. A zero-magnitude input divides by zero
+    (inf/NaN), matching scipy.
+    """
+    dot: Float64 = 0.0
+    na: Float64 = 0.0
+    nb: Float64 = 0.0
+    for i in range(len(a)):
+        dot += a[i] * b[i]
+        na += a[i] * a[i]
+        nb += b[i] * b[i]
+    out[0] = 1.0 - dot / (sqrt(na) * sqrt(nb))
+
+
+@guvectorize([], "(d),(d)->()")
+def correlation(a: Array[Float64], b: Array[Float64], out: Array[Float64]) -> None:
+    """Correlation distance: 1 - Pearson correlation of a and b.
+
+    Equivalent to the cosine distance between the mean-centered vectors.
+    Mirrors ``scipy.spatial.distance.correlation``. A constant input has zero
+    centered magnitude and divides by zero (NaN), matching scipy.
+    """
+    amean: Float64 = 0.0
+    bmean: Float64 = 0.0
+    for i in range(len(a)):
+        amean += a[i]
+        bmean += b[i]
+    amean = amean / len(a)
+    bmean = bmean / len(a)
+    dot: Float64 = 0.0
+    na: Float64 = 0.0
+    nb: Float64 = 0.0
+    da: Float64 = 0.0
+    db: Float64 = 0.0
+    for i in range(len(a)):
+        da = a[i] - amean
+        db = b[i] - bmean
+        dot += da * db
+        na += da * da
+        nb += db * db
+    out[0] = 1.0 - dot / (sqrt(na) * sqrt(nb))
