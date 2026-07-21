@@ -3,9 +3,13 @@ __pycache__/
 *.so
 *.dylib
 *.o
+# The compiled NumPy-ufunc extension is built into the repo root by
+# scripts/build_ext.py; never commit it (matches *.so above, named for clarity).
+ppspatial_native*
 dist/
 build/
 *.egg-info/
 .pytest_cache/
 .claude/
 .pixi/
+# pixi.lock IS committed for reproducibility — do not ignore it.
